@@ -8,18 +8,26 @@ require "rsc/build/repositories.rb"
 VERSION_NUMBER = "6.2.0.017-SNAPSHOT"
 
 ENV['JAVA_OPTS'] ||= '-Dfile.encoding=UTF-8'
-define "tmp-java" do
+define "tmp" do
   project.version = VERSION_NUMBER
   project.group = "org.intalio.tempo"
   
   compile.options.target = "1.5"
-
-   desc "Xml Beans generation"
-  define "tmp-axis" do 
-    FileUtils.mkdir_p _('target/classes/') # workaround for bug in buildr when no classes to be compiled.
-    compile_xml_beans _("../tmp/src/main/axis2")
-    package(:jar).include _('target/generated/xmlbeans/'), :as=>'.'
-    package(:jar).include _('target/classes/'), :as=>'.' 
+  
+  
+  define "service" do
+    libs = [TEMPO, AXIOM, APACHE_COMMONS, SLF4J]
+    compile.from("TMP/src/main/java").with TEMPO, AXIOM, APACHE_COMMONS, SLF4J
+    #package :jar
+    #package(:aar).with libs
   end
+
+  # desc "Xml Beans generation"
+  #define "tmp-axis" do 
+    #FileUtils.mkdir_p _('target/classes/') # workaround for bug in buildr when no classes to be compiled.
+    #compile_xml_beans _("../tmp/src/main/axis2")
+    #package(:jar).include _('target/generated/xmlbeans/'), :as=>'.'
+   # package(:jar).include _('target/classes/'), :as=>'.' 
+ # end
 
 end
