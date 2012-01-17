@@ -20,6 +20,8 @@ import org.intalio.tempo.workflow.util.xml.InvalidInputFormatException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.intalio.bpms.dao.BpelDao;
+
 /**
  * UIFWServiceSkeleton java skeleton for the axisService
  */
@@ -39,6 +41,7 @@ public class UIFWServiceSkeleton {
             com.intalio.bpms.workflow.ib4p_20051115.RevokeTaskRequest revokeTaskRequest) {
         
         try {
+        	_taskManagerProcess = BpelDao.getTMP(revokeTaskRequest.getTaskId());
 			return _taskManagerProcess.revokeTask(revokeTaskRequest);
 		} catch (TMSException e) {
 			_log.error(e.getMessage(), e);
@@ -56,7 +59,7 @@ public class UIFWServiceSkeleton {
 
     public com.intalio.bpms.workflow.ib4p_20051115.ClaimTaskResponse claimTask(
             com.intalio.bpms.workflow.ib4p_20051115.ClaimTaskRequest claimTaskRequest) throws TMSException {
-        
+    	_taskManagerProcess = BpelDao.getTMP(claimTaskRequest.getTaskId());
         return _taskManagerProcess.claimTask(claimTaskRequest);
     }
 
@@ -73,6 +76,7 @@ public class UIFWServiceSkeleton {
         //TODO get this instance from the database probabaly using taskId
         
         try {
+        	_taskManagerProcess = BpelDao.getTMP(completeTaskRequest.getTaskMetaData().getTaskId());
             return _taskManagerProcess.completeTask(completeTaskRequest);
         } catch (Exception e) {
             _log.error(e.getMessage(), e);
@@ -91,6 +95,7 @@ public class UIFWServiceSkeleton {
             com.intalio.bpms.workflow.ib4p_20051115.SkipTaskRequest skipTaskRequest) {
         
         try {
+        	_taskManagerProcess = BpelDao.getTMP(skipTaskRequest.getTaskId());
 			return _taskManagerProcess.skipTask(skipTaskRequest);
 		} catch (TMSException e) {
 			

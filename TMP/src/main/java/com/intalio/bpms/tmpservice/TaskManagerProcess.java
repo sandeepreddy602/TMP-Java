@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 
 import com.intalio.bpms.convertor.Convertor;
+import com.intalio.bpms.dao.BpelDao;
 import com.intalio.bpms.fdsclient.UserBusinessProcessesServicesStub;
 import com.intalio.bpms.fdsclient.UserBusinessProcessesServicesStub.Attachments_type0;
 import com.intalio.bpms.fdsclient.UserBusinessProcessesServicesStub.NotifyTaskCompletionRequest;
@@ -52,7 +53,95 @@ import com.intalio.tempo.workflow.processes.xpath.UID;
 
 public class TaskManagerProcess {
     
-    private ITMSServer _tmsServer;
+    public ITMSServer getTmsServer() {
+		return _tmsServer;
+	}
+
+	public void setTmsServer(ITMSServer tmsServer) {
+		this._tmsServer = tmsServer;
+	}
+
+	public String getProcessId() {
+		return processId;
+	}
+
+	public void setProcessId(String processId) {
+		this.processId = processId;
+	}
+
+	public ITaskDAOConnection getDao() {
+		return dao;
+	}
+
+	public void setDao(ITaskDAOConnection dao) {
+		this.dao = dao;
+	}
+
+	public Response getCreateTaskResponse() {
+		return _createTaskResponse;
+	}
+
+	public void setCreateTaskResponse(Response createTaskResponse) {
+		this._createTaskResponse = createTaskResponse;
+	}
+
+	public CreateTaskRequest get_createTaskRequest() {
+		return _createTaskRequest;
+	}
+
+	public void setCreateTaskRequest(CreateTaskRequest createTaskRequest) {
+		this._createTaskRequest = createTaskRequest;
+	}
+
+	public ChainedExecution get_nextTaskReadyRequest() {
+		return _nextTaskReadyRequest;
+	}
+
+	public void setNextTaskReadyRequest(ChainedExecution nextTaskReadyRequest) {
+		this._nextTaskReadyRequest = nextTaskReadyRequest;
+	}
+
+	public boolean isTaskCompleted() {
+		return _taskCompleted;
+	}
+
+	public void setTaskCompleted(boolean taskCompleted) {
+		this._taskCompleted = taskCompleted;
+	}
+
+	public boolean isTaskClaimed() {
+		return _taskClaimed;
+	}
+
+	public void setTaskClaimed(boolean taskClaimed) {
+		this._taskClaimed = taskClaimed;
+	}
+
+	public boolean isTaskEscalated() {
+		return _taskEscalated;
+	}
+
+	public void setTaskEscalated(boolean taskEscalated) {
+		this._taskEscalated = taskEscalated;
+	}
+
+	public Owners getInitialOwners() {
+		return _initialOwners;
+	}
+
+	public void setInitialOwners(Owners initialOwners) {
+		this._initialOwners = initialOwners;
+	}
+
+	public EscalateTaskRequest get_escalateTaskRequest() {
+		return _escalateTaskRequest;
+	}
+
+	public void setEscalateTaskRequest(EscalateTaskRequest escalateTaskRequest) {
+		this._escalateTaskRequest = escalateTaskRequest;
+	}
+
+	private ITMSServer _tmsServer;
     private String processId;
     private ITaskDAOConnection dao;
     private Logger _log = LoggerFactory.getLogger(UserBusinessProcessServiceSkeleton.class);
@@ -71,7 +160,7 @@ public class TaskManagerProcess {
     
     public  com.intalio.bpms.workflow.ib4p_20051115.Response createTask(
             final com.intalio.bpms.workflow.ib4p_20051115.CreateTaskRequest createTaskRequest) throws ADBException, InterruptedException { 
-        
+        _createTaskRequest = createTaskRequest;
         TaskMetaDataType taskMetaDataType = createTaskRequest.getTaskMetaData();
         com.intalio.bpms.workflow.ib4p_20051115.Response createTaskResponse = new Response();
         Calendar creationDate =null;
@@ -139,6 +228,7 @@ public class TaskManagerProcess {
         
         taskMetaDataType2.setCreationDate(creationDate);
         _createTaskResponse = createTaskResponse;
+        BpelDao.persistTMP(this);
         return createTaskResponse;
 
     }
@@ -172,19 +262,7 @@ public class TaskManagerProcess {
             chainedExecution.setPreviousTaskId(createTaskRequest.getTaskMetaData().getPreviousTaskId());
             tmpServiceSkeleton.nextTaskReady(chainedExecution);
         }
-        SubProcess subProcess = new SubProcess();
-    }
-    
-    public class SubProcess{
-        public ClaimTaskResponse claimTask(ClaimTaskRequest claimTaskRequest){
-            return null;
-        }
         
-        public Response completeTask(CompleteTaskRequest completeTaskRequest){
-            return null;
-        }
-        
-         
     }
 
     public Response completeTask(CompleteTaskRequest completeTaskRequest) throws TMSException, RemoteException{
@@ -206,10 +284,12 @@ public class TaskManagerProcess {
             completeTaskResponse.setErrorCode("ERROR");
             completeTaskResponse.setErrorReason("The task has been completed already");
             _taskCompleted = true;
+            BpelDao.persistTMP(this);
             return completeTaskResponse;
         }else if(TaskState.CLAIMED.equals(taskState) && !userOwners[0].equals(requestedUser)){
             completeTaskResponse.setErrorCode("ERROR");
             completeTaskResponse.setErrorReason("The task has been claimed by "+userOwners[0]);
+            BpelDao.persistTMP(this);
             return completeTaskResponse;
         }else{
             OMElement outputElement = completeTaskRequest.getTaskOutput();
@@ -223,6 +303,7 @@ public class TaskManagerProcess {
             Attachment[] attachments  = _tmsServer.getAttachments(dao, taskId, participantToken);
             if(_createTaskRequest.getTaskMetaData().getUserProcessEndpoint() != null){
                completeTaskResponse.setStatus("OK");
+               BpelDao.persistTMP(this);
                return completeTaskResponse;
             }else{
                 UserBusinessProcessesServicesStub ubpStub = new UserBusinessProcessesServicesStub();
@@ -257,6 +338,7 @@ public class TaskManagerProcess {
                 completeTaskResponse.setErrorCode(notifyTaskCompletionResponse.getErrorCode());
                 completeTaskResponse.setErrorReason(notifyTaskCompletionResponse.getErrorReason());
                 _taskCompleted = true;
+                BpelDao.persistTMP(this);
                 return completeTaskResponse;
                 
             }
@@ -313,6 +395,7 @@ public class TaskManagerProcess {
     		}
     		_tmsServer.reassign(dao, taskId, users, roles, taskState, participantToken, null);
     	}
+    	BpelDao.persistTMP(this);
         return revokeTaskResponse;
     }
 
@@ -333,15 +416,18 @@ public class TaskManagerProcess {
         if(TaskState.COMPLETED.equals(taskState)){
             claimTaskResponse.setStatus("The task has been completed already");
             _taskClaimed = true;
+            BpelDao.persistTMP(this);
             return claimTaskResponse;
         }else if(TaskState.CLAIMED.equals(taskState) && !userOwners[0].equals(requestedUser)){
             claimTaskResponse.setStatus("The task has been claimed by "+userOwners[0]);
             _taskClaimed = true;
+            BpelDao.persistTMP(this);
             return claimTaskResponse;
         }else{
         	
             if (TaskState.CLAIMED.equals(taskState)){
                 _taskClaimed = true;
+                BpelDao.persistTMP(this);
                 return claimTaskResponse;
             }else if(_taskEscalated){
                 if(_escalateTaskRequest != null){
@@ -383,6 +469,7 @@ public class TaskManagerProcess {
             
         }
         _taskClaimed = true;
+        BpelDao.persistTMP(this);
         return claimTaskResponse;
         
     }
@@ -393,7 +480,7 @@ public class TaskManagerProcess {
         String taskId = skipTaskRequest.getTaskId();
         _tmsServer.skip(dao, taskId, participantToken);
         _taskCompleted = true;
-        
+        BpelDao.persistTMP(this);
         return skipTaskResponse;
     }
     
@@ -417,6 +504,7 @@ public class TaskManagerProcess {
 		roles.add(role);
 		users.add(user);
 		_tmsServer.reassign(dao, taskId, users, roles, taskState, "", "ESCALATE");
+		BpelDao.persistTMP(this);
 		return escalateTaskResponse;
 	}
 

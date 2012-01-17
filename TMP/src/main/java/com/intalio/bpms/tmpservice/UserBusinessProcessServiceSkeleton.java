@@ -37,6 +37,7 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import com.intalio.bpms.convertor.Convertor;
+import com.intalio.bpms.dao.BpelDao;
 import com.intalio.bpms.workflow.ib4p_20051115.ChainedExecution;
 import com.intalio.bpms.workflow.ib4p_20051115.CreateTaskRequest;
 import com.intalio.bpms.workflow.ib4p_20051115.Response;
@@ -46,7 +47,7 @@ import com.intalio.tempo.workflow.processes.xpath.UID;
 /**
  * UserBusinessProcessServiceSkeleton java skeleton for the axisService
  */
-public class UserBusinessProcessServiceSkeleton implements TaskTimerListener{
+public class UserBusinessProcessServiceSkeleton{
 	private Logger _log = LoggerFactory.getLogger(UserBusinessProcessServiceSkeleton.class);
 	TaskManagerProcess _taskManagerProcess;
     private boolean notified = false;
@@ -62,6 +63,7 @@ public class UserBusinessProcessServiceSkeleton implements TaskTimerListener{
     public com.intalio.bpms.workflow.ib4p_20051115.EscalateTaskResponse escalateTask(
             com.intalio.bpms.workflow.ib4p_20051115.EscalateTaskRequest escalateTaskRequest) {
         try {
+        	_taskManagerProcess = BpelDao.getTMP(escalateTaskRequest.getTaskId());
 			return _taskManagerProcess.escalateTask(escalateTaskRequest);
 		} catch (TMSException e) {
 			_log.error(e.getMessage(), e);
@@ -80,7 +82,7 @@ public class UserBusinessProcessServiceSkeleton implements TaskTimerListener{
 
     public com.intalio.bpms.workflow.ib4p_20051115.Response createTask(
             com.intalio.bpms.workflow.ib4p_20051115.CreateTaskRequest createTaskRequest) throws InterruptedException, ADBException {
-        
+        _taskManagerProcess = new TaskManagerProcess();
         return _taskManagerProcess.createTask(createTaskRequest);
     }
   
@@ -97,13 +99,6 @@ public class UserBusinessProcessServiceSkeleton implements TaskTimerListener{
         // TODO : fill this with the necessary business logic
         throw new java.lang.UnsupportedOperationException("Please implement "
                 + this.getClass().getName() + "#skipTask");
-    }
-
-    @Override
-    public void notifyWithResponse(String response) {
-        System.out.println(response);
-        notified = true;
-        
     }
 
 }
