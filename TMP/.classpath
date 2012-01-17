@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="C:/Documents and Settings/sandeep/.m2/repository/org/apache/ws/commons/axiom/axiom-api/1.2.11/axiom-api-1.2.11.jar"/>
+	<classpathentry kind="lib" path="C:/Documents and Settings/sandeep/.m2/repository/org/slf4j/slf4j-api/1.4.3/slf4j-api-1.4.3.jar"/>
+	<classpathentry kind="lib" path="C:/Documents and Settings/sandeep/.m2/repository/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar"/>
+	<classpathentry kind="lib" path="C:/Documents and Settings/sandeep/.m2/repository/org/apache/ws/commons/axiom/axiom-dom/1.2.11/axiom-dom-1.2.11.jar"/>
+	<classpathentry kind="lib" path="E:/ImiWork/axis2-1.6.1/lib/axis2-kernel-1.6.1.jar"/>
+	<classpathentry kind="lib" path="E:/ImiWork/axis2-1.6.1/lib/axis2-adb-1.6.1.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/tempo-tms-common"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/tempo-tms-service"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/tmp-axis"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

@@ -1,0 +1,25 @@
+require "rubygems"
+require "buildr"
+require "buildr/xmlbeans"
+#require "rsc/buildr-tasks/xmlbeans.rb"   
+require "rsc/build/dependencies.rb"
+require "rsc/build/repositories.rb"
+
+VERSION_NUMBER = "6.2.0.017-SNAPSHOT"
+
+ENV['JAVA_OPTS'] ||= '-Dfile.encoding=UTF-8'
+define "tmp-java" do
+  project.version = VERSION_NUMBER
+  project.group = "org.intalio.tempo"
+  
+  compile.options.target = "1.5"
+
+   desc "Xml Beans generation"
+  define "tmp-axis" do 
+    FileUtils.mkdir_p _('target/classes/') # workaround for bug in buildr when no classes to be compiled.
+    compile_xml_beans _("../tmp/src/main/axis2")
+    package(:jar).include _('target/generated/xmlbeans/'), :as=>'.'
+    package(:jar).include _('target/classes/'), :as=>'.' 
+  end
+
+end
